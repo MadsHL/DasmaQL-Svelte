@@ -1,0 +1,82 @@
+.dasma-input {
+	font-family: monospace, 'Courier New', Courier;
+	text-decoration-style: unset;
+	padding: 8px;
+	border: 2px solid grey;
+	border-radius: 8px;
+}
+
+.dasma-input:active {
+	border-color: green;
+}
+
+.dasma-input:hover {
+	border-color: red;
+}
+
+[contenteditable='true'].dasma-input {
+	outline: 0px solid transparent;
+	white-space: nowrap;
+	overflow: hidden;
+}
+
+[contenteditable='true'].dasma-input br {
+	display: none;
+}
+
+[contenteditable='true'].dasma-input * {
+	display: inline;
+	white-space: nowrap;
+}
+
+.dasma-field {
+	color: #337ab7; /* Dark blue color for fields */
+}
+
+.dasma-operator {
+	font-weight: bold;
+	color: #888; /* Gray color for operators */
+}
+
+.dasma-string {
+	color: #5cb85c; /* Dark green color for strings */
+}
+
+.dasma-misc {
+	font-weight: bold;
+	color: #888; /* Gray color for miscellaneous */
+}
+
+.dasma-function {
+	font-style: italic;
+	color: #ff69b4; /* Pink color for functions */
+}
+
+.dasma-number {
+	color: #5bc0de; /* Light blue color for numbers */
+}
+
+.dasma-date {
+	color: #d9534f; /* Dark red color for dates */
+}
+
+.dasma-comment {
+	color: #6c757d; /* Gray color for comments */
+	font-style: italic; /* Italic font style for comments */
+}
+
+@keyframes errorKeyframe {
+	0% {
+		text-decoration-color: transparent; /* Start with no decoration */
+	}
+	100% {
+		text-decoration-color: #dc3545; /* End with desired color */
+		text-decoration-line: underline;
+		text-decoration-style: wavy;
+	}
+}
+
+.dasma-error,
+.dasma-unknown {
+	animation: errorKeyframe 1s linear 1s forwards;
+}
