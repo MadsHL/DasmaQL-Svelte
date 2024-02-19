@@ -15,15 +15,21 @@ Parameters
 - **fields**: An array of valid fields for autocompletion suggestions.
 - **callbackSearch**: A callback function to search for parameters based on the provided field and search query.
 
-```javascript
-<script>
-    const callbackSearch = (field, search) => {
-        // Dummy data retrieval and search logic
-        const values = dummyData[field.toLowerCase()];
-        return levenshtein.levenshteinSearchSort(values, search).slice(0, 10);
+```svelte
+<script lang="ts">
+
+    const callbackSearch = (field: string, search: string): (string | { label: string })[] => {
+        // Placeholder for search functionality
+        // Replace with actual search logic
+    
+        // Return dummy search result for example
+        return [label: '"some result"'];
     };
 </script>
 
 <SvelteDasmaQl {fields} {callbackSearch} />
-
 ```
+
+## Demo
+
+![Demo](demo-animation.gif)

@@ -1,9 +1,5 @@
 ### Svelte ###
 .svelte-kit/
-.eslintignore
-.prettierignore
-.prettierrc
-.eslintrc.cjs
 
 ### Node.js and npm ###
 node_modules/

@@ -1,6 +1,6 @@
 {
 	"name": "dasmaql-svelte",
-	"version": "0.1.0",
+	"version": "0.2.1",
 	"description": "A Svelte component providing an example of how DasmaQL can be utilized. DasmaQL is a lightweight query language used for data retrieval.",
 	"scripts": {
 		"dev": "vite dev",
@@ -29,7 +29,7 @@
 		"svelte": "^4.0.0"
 	},
 	"dependencies": {
-		"dasmaql": "^0.1.14"
+		"dasmaql": "^0.2.1"
 	},
 	"devDependencies": {
 		"@sveltejs/adapter-auto": "^3.0.0",

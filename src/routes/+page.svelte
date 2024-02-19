@@ -1,8 +1,12 @@
 <script lang="ts">
 	import { DasmaQl } from '$lib';
-	import levenshtein from 'dasmaql/src/modules/levenshteinDistance';
+	import { levenshteinSearchSort } from 'dasmaql/src/modules/levenshteinDistance';
 
-	const dummyData = {
+	interface DummyData {
+		[key: string]: { key: string; label: string }[];
+	}
+
+	const dummyData: DummyData = {
 		current_task: [
 			{
 				key: 'currentTask()',
@@ -138,10 +142,10 @@
 
 	const fields = Object.keys(dummyData);
 
-	const callbackSearch = (field, search) => {
+	const callbackSearch = (field: string, search: string): (string | { label: string })[] => {
 		const values = dummyData[field.toLowerCase()];
 
-		return levenshtein.levenshteinSearchSort(values, search).slice(0, 10);
+		return levenshteinSearchSort(values, search).slice(0, 10);
 	};
 </script>
 

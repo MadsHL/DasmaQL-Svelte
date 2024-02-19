@@ -1,24 +1,30 @@
 <script lang="ts">
-	import { debouncer } from '$lib/Debouncer.ts';
-	import { dasmaQlHighlighter, dasmaQlAutocomplete } from 'dasmaql';
+	import { debouncer } from '$lib/Debouncer';
 	import { CaretHandler } from '$lib/CaretHandler';
 	import { onMount } from 'svelte';
 	import DasmaAutocomplete from '$lib/DasmaAutocomplete.svelte';
+	import type { FormEventHandler, KeyboardEventHandler, MouseEventHandler } from 'svelte/elements';
+	import { dasmaQlAutocomplete, dasmaQlHighlighter } from 'dasmaql';
 
-	export let fields = [];
-	export let callbackSearch = () => {};
+	export let fields: string[] = [];
+	export let callbackSearch: (
+		field: string,
+		search: string
+	) => (string | { label: string })[] = () => {
+		return [];
+	};
 
-	let autocomplete;
-	let highlighter;
+	let autocomplete: dasmaQlAutocomplete;
+	let highlighter: dasmaQlHighlighter;
 
 	const debounceHighlighter = debouncer(200);
 	const debounceAutocomplete = debouncer(400);
 
 	let lastQl: string = '';
 	let selectedSuggestion: string | { key: string; label: string } = '';
-	let outputContainer;
+	let outputContainer: HTMLElement;
 
-	let autocompleteKeyEvent = {};
+	let autocompleteKeyEvent: (event: KeyboardEvent) => void = () => {};
 	let autocompletePotion = { x: 0, y: 0 };
 
 	let showSuggestions = false;
@@ -27,7 +33,7 @@
 	let currentPosition = 0;
 	let selectedIndex = -1;
 
-	function handleInputChange(event: InputEvent): void {
+	const handleInputChange: FormEventHandler<HTMLDivElement> = (event) => {
 		const input = getInputTextContent(event);
 		if (input !== lastQl) {
 			const outputContainer = event.target as HTMLElement;
@@ -38,51 +44,53 @@
 		}
 
 		lastQl = input;
-	}
+	};
 
-	function getSelectedSuggestionLabel() {
+	const getSelectedSuggestionLabel = () => {
 		if (typeof selectedSuggestion === 'object' && selectedSuggestion.label) {
 			return selectedSuggestion.label;
 		} else if (typeof selectedSuggestion === 'string') {
 			return selectedSuggestion;
 		}
 		return '';
-	}
-	function getSelectedSuggestionKey() {
+	};
+	const getSelectedSuggestionKey = () => {
 		if (typeof selectedSuggestion === 'object' && selectedSuggestion.key) {
 			return selectedSuggestion.key;
 		} else if (typeof selectedSuggestion === 'string') {
 			return selectedSuggestion;
 		}
 		return '';
-	}
+	};
 
-	function handleSelectionChange(event) {
-		if (event.type === 'click') {
-			if (showSuggestions && selectedSuggestion) {
-				showSuggestions = false;
-				const selectedSuggestion = getSelectedSuggestionLabel();
-				const newPosition =
-					currentPosition +
-					selectedSuggestion.length -
-					autocomplete.getInput(currentPosition).length;
+	const handleSelectionChangeFromMouse: MouseEventHandler<HTMLDivElement> = () => {
+		if (showSuggestions && selectedSuggestion) {
+			showSuggestions = false;
+			const selectedSuggestion = getSelectedSuggestionLabel();
+			const newPosition =
+				currentPosition + selectedSuggestion.length - autocomplete.getInput(currentPosition).length;
 
-				const newQlString = autocomplete.insertSuggestion(currentPosition, selectedSuggestion);
-				updateOutputContainer(newQlString, newPosition);
-			}
-			return;
+			const newQlString = autocomplete.insertSuggestion(currentPosition, selectedSuggestion);
+			updateOutputContainer(newQlString, newPosition);
 		}
+	};
+
+	const handleSelectionChangeFromKey: KeyboardEventHandler<HTMLDivElement> = (event) => {
 		switch (event?.key) {
+			case 'Shift':
+			case 'Tab':
 			case 'ArrowUp':
 			case 'ArrowDown':
-				event.preventDefault();
+				if (showSuggestions) {
+					event.preventDefault();
+				}
 				break;
 			case 'Enter':
 				event.preventDefault();
 				handleEnterKey(event);
 				break;
 			default:
-				currentPosition = getCaretPosition(event.target);
+				currentPosition = getCaretPosition(event.target as Node) || 0;
 				autocompletePotion = CaretHandler.getCaretCoordinates();
 				showSuggestions = false;
 				debounceAutocomplete.debounce(() => {
@@ -93,45 +101,46 @@
 					}
 				});
 		}
-	}
+	};
 
-	function handleEnterKey(event) {
+	const handleEnterKey: KeyboardEventHandler<HTMLDivElement> = (event) => {
 		const selectedSuggestion = getSelectedSuggestionKey();
 		showSuggestions = false;
 		autocomplete.refresh(getInputTextContent(event));
-
-		console.log(getInputTextContent(event), autocomplete.getInput(currentPosition));
-
-		console.log(currentPosition, autocomplete.getInput(currentPosition));
 		const newPosition =
 			currentPosition + selectedSuggestion.length - autocomplete.getInput(currentPosition).length;
 		const newQlString = autocomplete.insertSuggestion(currentPosition, selectedSuggestion);
 
 		updateOutputContainer(newQlString, newPosition);
-	}
+	};
 
-	function getInputTextContent(event) {
+	const getInputTextContent: FormEventHandler<HTMLDivElement> = (event) => {
 		return `${(event?.target as HTMLElement)?.textContent || ''}`;
-	}
+	};
 
-	function getCaretPosition(target) {
+	function getCaretPosition(target: Node | null) {
 		return CaretHandler.getCaretCharacterOffsetWithin(target);
 	}
 
-	function updateSuggestionsVisibility() {
+	const updateSuggestionsVisibility = () => {
 		if (suggestions?.length > 0) {
 			showSuggestions = true;
 			selectedIndex = -1;
 		}
-	}
+	};
 
-	function updateOutputContainer(newQlString, position) {
+	const updateOutputContainer = (newQlString: string, position: number | undefined) => {
+		if (position === undefined) return;
 		outputContainer.innerHTML = highlighter.highlight(newQlString);
 		CaretHandler.setCaretPosition(outputContainer, position);
-	}
+	};
 
 	onMount(() => {
-		outputContainer.addEventListener('selectionchange', (event) => handleSelectionChange(event));
+		outputContainer.addEventListener('selectionchange', (event) =>
+			handleSelectionChangeFromKey(
+				event as KeyboardEvent & { currentTarget: EventTarget & HTMLDivElement }
+			)
+		);
 
 		highlighter = dasmaQlHighlighter({
 			fields: fields
@@ -143,30 +152,30 @@
 	});
 </script>
 
-<div on:click={handleSelectionChange}>
+<div on:click={handleSelectionChangeFromMouse} on:keypress={() => {}} role="button" tabindex={0}>
 	<div
-		role="textbox"
-		tabindex="0"
+		autocomplete="off"
+		bind:this={outputContainer}
+		class="dasma-input"
 		contenteditable="true"
 		id="output-container"
-		class="dasma-input"
-		bind:this={outputContainer}
 		on:input={handleInputChange}
 		on:keydown={autocompleteKeyEvent}
-		on:keyup={handleSelectionChange}
-		autocomplete="off"
+		on:keyup={handleSelectionChangeFromKey}
+		role="textbox"
 		spellcheck="false"
-	></div>
+		tabindex="0"
+	/>
 	<DasmaAutocomplete
-		{suggestions}
-		visible={showSuggestions}
 		bind:handleKeyEvent={autocompleteKeyEvent}
+		bind:selectedIndex
 		bind:selectedSuggestion
 		position={autocompletePotion}
-		bind:selectedIndex
+		{suggestions}
+		visible={showSuggestions}
 	/>
 </div>
 
 <style lang="css">
-	@import 'static/dasma-highlighter.css';
+	@import 'dasma-highlighter.css';
 </style>
