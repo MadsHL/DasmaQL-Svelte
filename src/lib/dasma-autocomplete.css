@@ -1,5 +1,6 @@
 ul.dasma-autocomplete {
 	font-family: monospace, 'Courier New', Courier;
+	text-align: center;
 	list-style-type: none;
 	padding: 0;
 	margin: 0;
@@ -9,7 +10,21 @@ ul.dasma-autocomplete {
 	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 	position: absolute;
 	z-index: 999;
+	opacity: 0;
+	animation: dasma-autocomplete-drop-in 0.2s ease forwards;
 }
+
+@keyframes dasma-autocomplete-drop-in {
+	from {
+		opacity: 0;
+		transform: translateY(-20px);
+	}
+	to {
+		opacity: 1; /* End with full opacity */
+		transform: translateY(0);
+	}
+}
+
 
 ul.dasma-autocomplete > li {
 	padding: 8px 12px;

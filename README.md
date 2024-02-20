@@ -27,7 +27,7 @@ Parameters
     };
 </script>
 
-<SvelteDasmaQl {fields} {callbackSearch} />
+<DasmaQl {fields} {callbackSearch} />
 ```
 
 ## Demo

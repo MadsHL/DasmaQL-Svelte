@@ -1,21 +1,13 @@
 .dasma-input {
 	font-family: monospace, 'Courier New', Courier;
 	text-decoration-style: unset;
-	padding: 8px;
-	border: 2px solid grey;
+	padding: 20px 10px;
 	border-radius: 8px;
 }
 
-.dasma-input:active {
-	border-color: green;
-}
-
-.dasma-input:hover {
-	border-color: red;
-}
-
 [contenteditable='true'].dasma-input {
-	outline: 0px solid transparent;
+	outline: 2px solid #6c757d;
+	-moz-outline-radius: 8px;
 	white-space: nowrap;
 	overflow: hidden;
 }

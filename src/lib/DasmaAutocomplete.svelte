@@ -1,5 +1,6 @@
 <script lang="ts">
 	import type { MouseEventHandler } from 'svelte/elements';
+	import { onMount } from 'svelte';
 
 	export let suggestions: string[] = [];
 	export let position = { x: 0, y: 0 };
@@ -10,11 +11,14 @@
 
 	let menuElement: HTMLElement;
 
-	export const handleMouseClick: MouseEventHandler<HTMLLIElement> = (event) => {
+	const handleMouseClick: MouseEventHandler<HTMLLIElement> = (event) => {
 		if (!event.target) return;
 		const selectedIndex = Array.from(menuElement.children).indexOf(<Element>event.target);
 		if (selectedIndex !== -1 && selectedIndex < suggestions.length) {
+			event.preventDefault();
 			selectedSuggestion = getKey(suggestions[selectedIndex]);
+		} else {
+			visible = false;
 		}
 	};
 	export const handleKeyEvent = (event: KeyboardEvent) => {
@@ -25,10 +29,13 @@
 		} else if (['ArrowDown', 'Tab'].includes(event.key)) {
 			event.preventDefault();
 			selectedIndex = Math.min(selectedIndex + 1, suggestions.length - 1);
-		} else if (event.key === 'Enter') {
-			if (selectedIndex >= 0 && selectedIndex < suggestions.length) {
-				selectedSuggestion = getKey(suggestions[selectedIndex]);
-			}
+		} else if (
+			event.key === 'Enter' &&
+			selectedIndex !== -1 &&
+			selectedIndex < suggestions.length
+		) {
+			event.preventDefault();
+			selectedSuggestion = getKey(suggestions[selectedIndex]);
 		}
 	};
 
@@ -49,6 +56,15 @@
 		}
 		return '';
 	};
+
+	onMount(() => {
+		document.addEventListener('click', () => {
+			selectedIndex = -1;
+			suggestions = [];
+			selectedSuggestion = '';
+			visible = false;
+		});
+	});
 </script>
 
 {#if visible}
@@ -65,6 +81,7 @@
 				tabindex={index}
 				class:selected={index === selectedIndex}
 				on:click={handleMouseClick}
+				class="dasma-suggestion"
 			>
 				{getLabel(suggestion)}
 			</li>

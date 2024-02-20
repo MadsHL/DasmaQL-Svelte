@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { DasmaQl } from '$lib';
 	import { levenshteinSearchSort } from 'dasmaql/src/modules/levenshteinDistance';
+	import { type QlModel } from 'dasmaql/src/modules/dasmaQlSyntax';
 
 	interface DummyData {
 		[key: string]: { key: string; label: string }[];
@@ -140,13 +141,109 @@
 		]
 	};
 
+	function syntaxHighlight(jsonObject: QlModel) {
+		try {
+			return JSON.stringify(jsonObject, null, 2)
+				.replace(/&/g, '&amp;')
+				.replace(/</g, '&lt;')
+				.replace(/>/g, '&gt;')
+				.replace(
+					/("(\\u[a-zA-Z0-9]{4}|\\[^\\]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+-]?\d+)?)/g,
+					(match) => {
+						let cls = 'json-number';
+						if (/^"/.test(match)) {
+							if (/:$/.test(match)) {
+								cls = 'json-key';
+							} else {
+								cls = 'json-string';
+							}
+						} else if (/true|false/.test(match)) {
+							cls = 'json-boolean';
+						} else if (/null/.test(match)) {
+							cls = 'json-null';
+						}
+						return '<span class="' + cls + '">' + match + '</span>';
+					}
+				);
+		} catch (error) {
+			console.error('Invalid JSON:', error);
+			return '';
+		}
+	}
+
 	const fields = Object.keys(dummyData);
+
+	let qlModel: QlModel;
+	let generateModel: () => QlModel;
 
 	const callbackSearch = (field: string, search: string): (string | { label: string })[] => {
 		const values = dummyData[field.toLowerCase()];
 
 		return levenshteinSearchSort(values, search).slice(0, 10);
 	};
+
+	let outputModel = () => {
+		qlModel = generateModel();
+	};
 </script>
 
-<DasmaQl {fields} {callbackSearch} />
+<DasmaQl {fields} {callbackSearch} bind:generateModel />
+<button on:click={outputModel}>Try me out!</button>
+<br />
+<div class="json-output">
+	<pre>{@html qlModel ? syntaxHighlight(qlModel) : ''}</pre>
+</div>
+
+<style>
+	button {
+		background-color: #4caf50;
+		color: white;
+
+		padding: 20px 40px;
+		border: none;
+		cursor: pointer;
+		border-radius: 10px;
+		font-size: 20px;
+		display: block;
+		margin: 20px auto;
+	}
+
+	button:hover {
+		background-color: #45a049;
+	}
+
+	.json-output {
+		overflow: auto;
+		font-family: monospace;
+
+		width: calc(100% - 40px);
+		padding: 12px;
+		margin: 12px;
+		border: 1px solid #ccc;
+		border-radius: 4px;
+		resize: vertical;
+		font-size: 14px;
+		height: calc(100vh - 250px);
+		background-color: #f8f8f8;
+	}
+
+	:global(.json-string) {
+		color: green;
+	}
+
+	:global(.json-number) {
+		color: blue;
+	}
+
+	:global(.json-boolean) {
+		color: orange;
+	}
+
+	:global(.json-null) {
+		color: grey;
+	}
+
+	:global(.json-key) {
+		color: brown;
+	}
+</style>
